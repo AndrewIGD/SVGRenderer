@@ -2,6 +2,7 @@ import string
 import xml.etree.ElementTree as ET
 
 from drawer.drawer import SVGConfig
+from parser.parsers.ellipse_parser import EllipseParser
 
 from parser.parsers.group_parser import GroupParser
 from parser.parsers.rectangle_parser import RectParser
@@ -9,7 +10,7 @@ from parser.parsers.svg_parser import SVGParser
 from parser.utils import set_parsing_function
 
 element_parsers = [
-        SVGParser(), GroupParser(), RectParser()
+        SVGParser(), GroupParser(), RectParser(), EllipseParser()
     ]
 
 def try_parse(element: ET.Element, config: SVGConfig):
