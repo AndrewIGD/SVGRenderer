@@ -8,7 +8,7 @@ class SVG(Group):
         self.image = None
 
     def draw(self):
-        self.image = Image.new("RGB", (self.get_width(), self.get_height()), "white")
+        self.image = Image.new("RGB", (self.width, self.height), "white")
         self.config.image = ImageDraw.Draw(self.image)
         for child in self.children:
             child.draw()

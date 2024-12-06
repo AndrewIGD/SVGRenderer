@@ -2,11 +2,11 @@ from xml.etree.ElementTree import Element
 
 from drawer.drawer import SVGConfig
 from drawer.drawers.rect_drawer import Rectangle
-from parser.parsers.group_parser import GroupParser
+from parser.parsers.parser_base import Parser
 from parser.utils import compare_tag
 
 
-class RectParser(GroupParser):
+class RectParser(Parser):
     def try_parse(self, element: Element, config: SVGConfig):
         if not compare_tag(element, "rect"):
             return None
@@ -34,5 +34,11 @@ class RectParser(GroupParser):
             rx = ry
         elif rx != 0 and ry == 0:
             ry = rx
+
+        if rx > width / 2:
+            rx = width / 2
+
+        if ry > height / 2:
+            ry = height / 2
 
         return Rectangle(x, y, width, height, rx, ry, config)

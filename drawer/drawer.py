@@ -8,17 +8,11 @@ class SVGConfig:
 
 class Drawable:
     def __init__(self, x, y, width, height, config):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
+        self.x = floor(x * config.pixels_per_mm)
+        self.y = floor(y * config.pixels_per_mm)
+        self.width = floor(width * config.pixels_per_mm)
+        self.height = floor(height * config.pixels_per_mm)
         self.config = config
-
-    def get_width(self):
-        return floor(self.width * self.config.pixels_per_mm)
-
-    def get_height(self):
-        return floor(self.height * self.config.pixels_per_mm)
 
     def draw(self):
         pass

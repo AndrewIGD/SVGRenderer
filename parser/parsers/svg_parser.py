@@ -20,8 +20,8 @@ class SVGParser(GroupParser):
         self.group = SVG(float(x), float(y), float(width), float(height), config)
         self.parse_children(element, config)
 
-        print(len(self.group.children))
-        for child in self.group.children:
-            print(child)
+        #print(len(self.group.children))
+        #for child in self.group.children:
+        #    print(child)
 
         return self.group
