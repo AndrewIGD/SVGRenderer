@@ -6,12 +6,13 @@ from parser.parsers.ellipse_parser import EllipseParser
 
 from parser.parsers.group_parser import GroupParser
 from parser.parsers.line_parser import LineParser
+from parser.parsers.path_parser import PathParser
 from parser.parsers.rectangle_parser import RectParser
 from parser.parsers.svg_parser import SVGParser
 from parser.utils import set_parsing_function
 
 element_parsers = [
-        SVGParser(), GroupParser(), RectParser(), EllipseParser(), LineParser()
+        SVGParser(), GroupParser(), RectParser(), EllipseParser(), LineParser(), PathParser()
     ]
 
 def try_parse(element: ET.Element, config: SVGConfig):
