@@ -15,8 +15,8 @@ from drawer.drawers.path_commands.vertical_line import VerticalLine
 
 
 class Path(Drawable):
-    def __init__(self, commands, config):
-        super().__init__(0, 0, 0, 0, config)
+    def __init__(self, commands, config, fill, outline, outline_width):
+        super().__init__(0, 0, 0, 0, config, fill, outline, outline_width)
         self.commands = commands
         self.previous_cubic_control = None
         self.previous_quadratic_control = None
@@ -43,7 +43,7 @@ class Path(Drawable):
 
         points = [cubic_bezier(start, control1, control2, end, t) for t in [i / 100 for i in range(101)]]
 
-        image.line(points, fill="black", width=self.config.pixels_per_mm)
+        image.polygon(points, fill=self.fill, outline=self.outline ,width=self.outline_width * self.config.pixels_per_mm)
 
         self.previous_cubic_control = control2
 
@@ -57,7 +57,7 @@ class Path(Drawable):
 
         points = [quadratic_bezier(start, control, end, t) for t in [i / 100 for i in range(101)]]
 
-        image.line(points, fill="black", width=self.config.pixels_per_mm)
+        image.polygon(points, fill=self.fill, outline=self.outline ,width=self.outline_width * self.config.pixels_per_mm)
 
         self.previous_quadratic_control = control
 
@@ -86,7 +86,7 @@ class Path(Drawable):
 
         points = [ellipse(t) for t in [math.radians(i) for i in frange(start_angle, end_angle, 1)]]
 
-        image.line(points, fill="black", width=self.config.pixels_per_mm)
+        image.polygon(points, fill="black", width=self.config.pixels_per_mm)
 
     def draw(self):
         image = self.config.image
@@ -111,7 +111,7 @@ class Path(Drawable):
                     new_x = command.x * self.config.pixels_per_mm
                     new_y = command.y * self.config.pixels_per_mm
 
-                image.line([(x, y), (new_x, new_y)], fill="black", width=self.config.pixels_per_mm)
+                image.line([(x, y), (new_x, new_y)], self.outline, width=self.config.pixels_per_mm)
 
                 self.set_start_point(x, y)
 
@@ -124,7 +124,7 @@ class Path(Drawable):
                 else:
                     new_x = command.x * self.config.pixels_per_mm
 
-                image.line([(x, y), (new_x, y)], fill="black", width=self.config.pixels_per_mm)
+                image.line([(x, y), (new_x, y)], fill=self.outline, width=self.config.pixels_per_mm)
 
                 self.set_start_point(x, y)
 
@@ -136,7 +136,7 @@ class Path(Drawable):
                 else:
                     new_y = command.y * self.config.pixels_per_mm
 
-                image.line([(x, y), (x, new_y)], fill="black", width=self.config.pixels_per_mm)
+                image.line([(x, y), (x, new_y)], fill=self.outline, width=self.config.pixels_per_mm)
 
                 self.set_start_point(x, y)
 
@@ -296,5 +296,5 @@ class Path(Drawable):
                 y = end[1]
 
             elif isinstance(command, ClosePath):
-                image.line([(x, y), self.path_start_point], fill="black", width=self.config.pixels_per_mm)
+                image.line([(x, y), self.path_start_point], fill=self.outline, width=self.config.pixels_per_mm)
                 return

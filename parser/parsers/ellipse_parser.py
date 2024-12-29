@@ -3,13 +3,16 @@ from xml.etree.ElementTree import Element
 from drawer.drawer import SVGConfig
 from drawer.drawers.ellipse_drawer import Ellipse
 from parser.parsers.parser_base import Parser
+from parser.shape_parser import ShapeParser
 from parser.utils import compare_tag
 
 
-class EllipseParser(Parser):
+class EllipseParser(ShapeParser):
     def try_parse(self, element: Element, config: SVGConfig):
         if not compare_tag(element, "circle") and not compare_tag(element, "ellipse"):
             return None
+
+        self.parse_shape_elements(element)
 
         if "cx" in element.keys():
             cx = float(element.get("cx"))
@@ -35,4 +38,4 @@ class EllipseParser(Parser):
             elif rx is not None and ry is None:
                 ry = rx
 
-        return Ellipse(cx, cy, rx, ry, config)
+        return Ellipse(cx, cy, rx, ry, config, self.fill, self.outline, self.outline_width)

@@ -7,11 +7,14 @@ class SVGConfig:
         self.image = None
 
 class Drawable:
-    def __init__(self, x, y, width, height, config):
+    def __init__(self, x, y, width, height, config, fill = None, outline = None, outline_width = None):
         self.x = floor(x * config.pixels_per_mm)
         self.y = floor(y * config.pixels_per_mm)
         self.width = floor(width * config.pixels_per_mm)
         self.height = floor(height * config.pixels_per_mm)
+        self.fill = fill
+        self.outline = outline
+        self.outline_width = outline_width
         self.config = config
 
     def draw(self):

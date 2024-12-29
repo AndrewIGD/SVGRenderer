@@ -1,0 +1,43 @@
+import math
+from xml.etree.ElementTree import Element
+
+from parser.parsers.parser_base import Parser
+
+
+class ShapeParser(Parser):
+    def __init__(self):
+        super().__init__()
+        self.fill = "#000000"
+        self.outline = "#000000"
+        self.outline_width = 1
+
+    def parse_shape_elements(self, element: Element):
+        if "fill" in element.keys():
+            self.fill = element.get("fill")
+
+        if "stroke" in element.keys():
+            self.outline = element.get("stroke")
+
+        if "stroke-width" in element.keys():
+            self.outline_width = math.floor(float(element.get("stroke-width")))
+
+        if not "style" in element.keys():
+            return
+
+        style = element.get("style")
+        style_params = style.split(";")
+
+        for param in style_params:
+            pair = param.strip(" ").split(":")
+
+            if len(pair) != 2:
+                continue
+
+            key, value = pair
+
+            if key == "fill":
+                self.fill = value
+            elif key == "stroke":
+                self.outline = value
+            elif key == "stroke-width":
+                self.outline_width = math.floor(float(value))

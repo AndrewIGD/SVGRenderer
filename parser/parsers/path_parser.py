@@ -13,10 +13,11 @@ from drawer.drawers.path_commands.smooth_quadratic import SmoothQuadraticCurve
 from drawer.drawers.path_commands.vertical_line import VerticalLine
 from drawer.drawers.path_drawer import Path
 from parser.parsers.parser_base import Parser
+from parser.shape_parser import ShapeParser
 from parser.utils import compare_tag
 
 
-class PathParser(Parser):
+class PathParser(ShapeParser):
     def __init__(self):
         super().__init__()
         self.parameters = []
@@ -153,6 +154,8 @@ class PathParser(Parser):
         if not compare_tag(element, "path"):
             return None
 
+        self.parse_shape_elements(element)
+
         if "d" in element.keys():
             d = element.get("d").replace(",", " ")
         else: return None
@@ -198,4 +201,4 @@ class PathParser(Parser):
 
             else: break
 
-        return Path(self.commands, config)
+        return Path(self.commands, config, self.fill, self.outline, self.outline_width)
