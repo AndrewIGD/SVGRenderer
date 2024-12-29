@@ -1,4 +1,5 @@
-from math import floor
+import math
+from math import floor, radians
 
 from drawer.drawer import Drawable
 from drawer.drawers.path_commands.arc import Arc
@@ -59,6 +60,33 @@ class Path(Drawable):
         image.line(points, fill="black", width=self.config.pixels_per_mm)
 
         self.previous_quadratic_control = control
+
+    def draw_arc(self, cx, cy, rx, ry, start_angle, end_angle, angle):
+        def ellipse(t):
+            ellipse_point = cx + rx * math.cos(t), cy + ry * math.sin(t)
+
+            angle_radians = math.radians(angle)
+
+            x_new = cx + (ellipse_point[0] - cx) * math.cos(angle_radians) - (ellipse_point[1] - cy) * math.sin(angle_radians)
+            y_new = cy + (ellipse_point[0] - cx) * math.sin(angle_radians) + (ellipse_point[1] - cy) * math.cos(angle_radians)
+
+            return x_new, y_new
+
+        def frange(start, stop, step):
+            index = start
+            nums = []
+            while index <= stop:
+                nums.append(index)
+                index += step
+
+            nums.append(stop)
+            return nums
+
+        image = self.config.image
+
+        points = [ellipse(t) for t in [math.radians(i) for i in frange(start_angle, end_angle, 1)]]
+
+        image.line(points, fill="black", width=self.config.pixels_per_mm)
 
     def draw(self):
         image = self.config.image
@@ -189,7 +217,83 @@ class Path(Drawable):
                 y = end[1]
 
             elif isinstance(command, Arc):
-                pass
+                if command.rx == 0 or command.ry == 0: continue
+                if command.rx < 0: command.rx = -command.rx
+                if command.ry < 0: command.ry = -command.ry
+
+                start = (x, y)
+                if command.relative:
+                    end = (x + command.x * self.config.pixels_per_mm, y + command.y * self.config.pixels_per_mm)
+                else:
+                    end = (command.x * self.config.pixels_per_mm, command.y * self.config.pixels_per_mm)
+
+                pi_times_2 = math.pi * 2
+                phi = radians(command.x_rotation)
+
+                sin_phi = math.sin(phi)
+                cos_phi = math.cos(phi)
+
+                hd_x = (start[0] - end[0]) / 2
+                hd_y = (start[1] - end[1]) / 2
+                hs_x = (start[0] + end[0]) / 2
+                hs_y = (start[1] + end[1]) / 2
+
+                x_prime = hd_x * cos_phi + sin_phi * hd_y
+                y_prime = hd_y * cos_phi - sin_phi * hd_x
+
+                lambda_ = math.pow(x_prime, 2) / math.pow(command.rx, 2) + math.pow(y_prime, 2) / math.pow(command.ry, 2)
+                if lambda_ > 1:
+                    command.rx = command.rx * math.sqrt(lambda_)
+                    command.ry = command.ry * math.sqrt(lambda_)
+
+                rxry = command.rx * command.ry
+                rxyp = command.rx * y_prime
+                ryxp = command.ry * x_prime
+                sq_sum = math.pow(rxyp, 2) + math.pow(ryxp, 2)
+                if sq_sum == 0:
+                    continue
+
+                coef = math.sqrt(abs((math.pow(rxry, 2) - sq_sum) / sq_sum))
+                if command.large_arc == command.sweep:
+                    coef = -coef
+
+                cx_prime = coef * rxyp / command.ry
+                cy_prime = -coef * ryxp / command.rx
+
+                cx = cos_phi * cx_prime - sin_phi * cy_prime + hs_x
+                cy = cos_phi * cy_prime + sin_phi * cx_prime + hs_y
+
+                xcr1 = (x_prime - cx_prime) / command.rx
+                xcr2 = (x_prime + cx_prime) / command.rx
+                ycr1 = (y_prime - cy_prime) / command.ry
+                ycr2 = (y_prime + cy_prime) / command.ry
+
+                def angle_radians(ux, uy, vx, vy):
+                    dot = ux * vx + uy * vy
+                    mod = math.sqrt((math.pow(ux, 2) + math.pow(uy, 2)) * (math.pow(vx, 2) + math.pow(vy, 2)))
+                    rad = math.acos(dot / mod)
+                    if ux * vy - uy * vx < 0:
+                        rad = -rad
+
+                    return rad
+
+                start_angle = angle_radians(1, 0, xcr1, ycr1)
+                delta_angle = angle_radians(xcr1, ycr1, -xcr2, -ycr2)
+                end_angle = start_angle + delta_angle
+
+                start_angle = math.degrees(start_angle) % 360
+                end_angle = math.degrees(end_angle) % 360
+
+                if not command.sweep:
+                    start_angle, end_angle = end_angle, start_angle
+
+                if command.large_arc:
+                    end_angle += 360
+
+                self.draw_arc(cx, cy, command.rx, command.ry, start_angle, end_angle, command.x_rotation)
+
+                x = end[0]
+                y = end[1]
 
             elif isinstance(command, ClosePath):
                 image.line([(x, y), self.path_start_point], fill="black", width=self.config.pixels_per_mm)
