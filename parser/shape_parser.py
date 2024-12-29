@@ -21,23 +21,27 @@ class ShapeParser(Parser):
         if "stroke-width" in element.keys():
             self.outline_width = math.floor(float(element.get("stroke-width")))
 
-        if not "style" in element.keys():
-            return
+        if "style" in element.keys():
+            style = element.get("style")
+            style_params = style.split(";")
 
-        style = element.get("style")
-        style_params = style.split(";")
+            for param in style_params:
+                pair = param.strip(" ").split(":")
 
-        for param in style_params:
-            pair = param.strip(" ").split(":")
+                if len(pair) != 2:
+                    continue
 
-            if len(pair) != 2:
-                continue
+                key, value = pair
 
-            key, value = pair
+                if key == "fill":
+                    self.fill = value
+                elif key == "stroke":
+                    self.outline = value
+                elif key == "stroke-width":
+                    self.outline_width = math.floor(float(value))
 
-            if key == "fill":
-                self.fill = value
-            elif key == "stroke":
-                self.outline = value
-            elif key == "stroke-width":
-                self.outline_width = math.floor(float(value))
+        if self.fill is None or self.fill.lower() == "none":
+            self.fill = None
+
+        if self.outline is None or self.outline.lower() == "none":
+            self.outline = None

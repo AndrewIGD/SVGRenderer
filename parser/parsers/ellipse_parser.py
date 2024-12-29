@@ -2,7 +2,6 @@ from xml.etree.ElementTree import Element
 
 from drawer.drawer import SVGConfig
 from drawer.drawers.ellipse_drawer import Ellipse
-from parser.parsers.parser_base import Parser
 from parser.shape_parser import ShapeParser
 from parser.utils import compare_tag
 
