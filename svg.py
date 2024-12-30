@@ -13,7 +13,7 @@ def main():
 
     pixels_per_mm = 10
 
-    svg_path = "temp/polyline.svg"
+    svg_path = "temp/arc.svg"
 
     svg = parse_svg(svg_path, SVGConfig(pixels_per_mm=pixels_per_mm))
 

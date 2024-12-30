@@ -16,7 +16,4 @@ class Polyline(Drawable):
         if self.outline is None:
             return
 
-        for i in range(len(self.points) - 1):
-            a, b = self.points[i], self.points[i + 1]
-
-            image.line([a, b], fill=self.outline, width=self.outline_width * self.config.pixels_per_mm)
+        image.line(self.points, fill=self.outline, width=self.outline_width * self.config.pixels_per_mm, joint='curve')

@@ -1,5 +1,5 @@
 import math
-from math import floor, radians
+from math import radians
 
 from drawer.drawer import Drawable
 from drawer.drawers.path_commands.arc import Arc
@@ -20,15 +20,16 @@ class Path(Drawable):
         self.commands = commands
         self.previous_cubic_control = None
         self.previous_quadratic_control = None
-        self.path_started = False
-        self.path_start_point = None
+        self.polygons = []
+        self.current_polygon = []
+        self.x = 0
+        self.y = 0
 
-    def set_start_point(self, x, y):
-        if self.path_started:
-            return
+    def add_points_to_polygon(self, points):
+        if len(self.current_polygon) == 0:
+            self.current_polygon.append((self.x, self.y))
 
-        self.path_started = True
-        self.path_start_point = (x, y)
+        self.current_polygon.extend(points)
 
     def draw_cubic(self, start, control1, control2, end):
         def cubic_bezier(p0, p1, p2, p3, t):
@@ -39,11 +40,10 @@ class Path(Drawable):
                 p3[1],
             )
 
-        image = self.config.image
+        point_count = 100 * self.config.pixels_per_mm
+        points = [cubic_bezier(start, control1, control2, end, t) for t in [i / point_count for i in range(point_count + 1)]]
 
-        points = [cubic_bezier(start, control1, control2, end, t) for t in [i / 100 for i in range(101)]]
-
-        image.polygon(points, fill=self.fill, outline=self.outline ,width=self.outline_width * self.config.pixels_per_mm)
+        self.add_points_to_polygon(points)
 
         self.previous_cubic_control = control2
 
@@ -53,11 +53,10 @@ class Path(Drawable):
             y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1]
             return x, y
 
-        image = self.config.image
+        point_count = 100 * self.config.pixels_per_mm
+        points = [quadratic_bezier(start, control, end, t) for t in [i / point_count for i in range(point_count + 1)]]
 
-        points = [quadratic_bezier(start, control, end, t) for t in [i / 100 for i in range(101)]]
-
-        image.polygon(points, fill=self.fill, outline=self.outline ,width=self.outline_width * self.config.pixels_per_mm)
+        self.add_points_to_polygon(points)
 
         self.previous_quadratic_control = control
 
@@ -82,72 +81,71 @@ class Path(Drawable):
             nums.append(stop)
             return nums
 
-        image = self.config.image
+        bounding_box = [cx - 5, cy - 5, cx + 5, cy + 5]
+
+        self.config.image.ellipse(bounding_box, fill="#FF0000")
 
         points = [ellipse(t) for t in [math.radians(i) for i in frange(start_angle, end_angle, 1)]]
 
-        image.polygon(points, fill="black", width=self.config.pixels_per_mm)
+        self.add_points_to_polygon(points)
 
     def draw(self):
         image = self.config.image
 
-        x = 0
-        y = 0
-
         for command in self.commands:
             if isinstance(command, MoveTo):
+
+                if len(self.current_polygon) > 1:
+                    self.polygons.append(self.current_polygon)
+
+                self.current_polygon = []
+
                 if command.relative:
-                    x += command.x * self.config.pixels_per_mm
-                    y += command.y * self.config.pixels_per_mm
+                    self.x += command.x * self.config.pixels_per_mm
+                    self.y += command.y * self.config.pixels_per_mm
                 else:
-                    x = command.x * self.config.pixels_per_mm
-                    y = command.y * self.config.pixels_per_mm
+                    self.x = command.x * self.config.pixels_per_mm
+                    self.y = command.y * self.config.pixels_per_mm
 
             elif isinstance(command, LineTo):
                 if command.relative:
-                    new_x = x + command.x * self.config.pixels_per_mm
-                    new_y = y + command.y * self.config.pixels_per_mm
+                    new_x = self.x + command.x * self.config.pixels_per_mm
+                    new_y = self.y + command.y * self.config.pixels_per_mm
                 else:
                     new_x = command.x * self.config.pixels_per_mm
                     new_y = command.y * self.config.pixels_per_mm
 
-                image.line([(x, y), (new_x, new_y)], self.outline, width=self.config.pixels_per_mm)
+                self.add_points_to_polygon([(new_x, new_y)])
 
-                self.set_start_point(x, y)
-
-                x = new_x
-                y = new_y
+                self.x = new_x
+                self.y = new_y
 
             elif isinstance(command, HorizontalLine):
                 if command.relative:
-                    new_x = x + command.x * self.config.pixels_per_mm
+                    new_x = self.x + command.x * self.config.pixels_per_mm
                 else:
                     new_x = command.x * self.config.pixels_per_mm
 
-                image.line([(x, y), (new_x, y)], fill=self.outline, width=self.config.pixels_per_mm)
+                self.add_points_to_polygon([(new_x, self.y)])
 
-                self.set_start_point(x, y)
-
-                x = new_x
+                self.x = new_x
 
             elif isinstance(command, VerticalLine):
                 if command.relative:
-                    new_y = y + command.y * self.config.pixels_per_mm
+                    new_y = self.y + command.y * self.config.pixels_per_mm
                 else:
                     new_y = command.y * self.config.pixels_per_mm
 
-                image.line([(x, y), (x, new_y)], fill=self.outline, width=self.config.pixels_per_mm)
+                self.add_points_to_polygon([(self.x, new_y)])
 
-                self.set_start_point(x, y)
-
-                y = new_y
+                self.y = new_y
 
             elif isinstance(command, CubicCurve):
-                start = (x, y)
+                start = (self.x, self.y)
                 if command.relative:
-                    control1 = (x + command.x1 * self.config.pixels_per_mm, y + command.y1 * self.config.pixels_per_mm)
-                    control2 = (x + command.x2 * self.config.pixels_per_mm, y + command.y2 * self.config.pixels_per_mm)
-                    end = (x + command.x * self.config.pixels_per_mm, y + command.y * self.config.pixels_per_mm)
+                    control1 = (self.x + command.x1 * self.config.pixels_per_mm, self.y + command.y1 * self.config.pixels_per_mm)
+                    control2 = (self.x + command.x2 * self.config.pixels_per_mm, self.y + command.y2 * self.config.pixels_per_mm)
+                    end = (self.x + command.x * self.config.pixels_per_mm, self.y + command.y * self.config.pixels_per_mm)
                 else:
                     control1 = (command.x1 * self.config.pixels_per_mm, command.y1 * self.config.pixels_per_mm)
                     control2 = (command.x2 * self.config.pixels_per_mm, command.y2 * self.config.pixels_per_mm)
@@ -155,16 +153,14 @@ class Path(Drawable):
 
                 self.draw_cubic(start, control1, control2, end)
 
-                self.set_start_point(x, y)
-
-                x = end[0]
-                y = end[1]
+                self.x = end[0]
+                self.y = end[1]
 
             elif isinstance(command, SmoothCubicCurve):
-                start = (x, y)
+                start = (self.x, self.y)
                 if command.relative:
-                    control2 = (x + command.x2 * self.config.pixels_per_mm, y + command.y2 * self.config.pixels_per_mm)
-                    end = (x + command.x * self.config.pixels_per_mm, y + command.y * self.config.pixels_per_mm)
+                    control2 = (self.x + command.x2 * self.config.pixels_per_mm, self.y + command.y2 * self.config.pixels_per_mm)
+                    end = (self.x + command.x * self.config.pixels_per_mm, self.y + command.y * self.config.pixels_per_mm)
                 else:
                     control2 = (command.x2 * self.config.pixels_per_mm, command.y2 * self.config.pixels_per_mm)
                     end = (command.x * self.config.pixels_per_mm, command.y * self.config.pixels_per_mm)
@@ -176,31 +172,27 @@ class Path(Drawable):
 
                 self.draw_cubic(start, (2 * start[0] - control1[0], 2 * start[1] - control1[1]), control2, end)
 
-                self.set_start_point(x, y)
-
-                x = end[0]
-                y = end[1]
+                self.x = end[0]
+                self.y = end[1]
 
             elif isinstance(command, QuadraticCurve):
-                start = (x, y)
+                start = (self.x, self.y)
                 if command.relative:
-                    control = (x + command.x1 * self.config.pixels_per_mm, y + command.y1 * self.config.pixels_per_mm)
-                    end = (x + command.x * self.config.pixels_per_mm, y + command.y * self.config.pixels_per_mm)
+                    control = (self.x + command.x1 * self.config.pixels_per_mm, self.y + command.y1 * self.config.pixels_per_mm)
+                    end = (self.x + command.x * self.config.pixels_per_mm, self.y + command.y * self.config.pixels_per_mm)
                 else:
                     control = (command.x1 * self.config.pixels_per_mm, command.y1 * self.config.pixels_per_mm)
                     end = (command.x * self.config.pixels_per_mm, command.y * self.config.pixels_per_mm)
 
                 self.draw_quadratic(start, control, end)
 
-                self.set_start_point(x, y)
-
-                x = end[0]
-                y = end[1]
+                self.x = end[0]
+                self.y = end[1]
 
             elif isinstance(command, SmoothQuadraticCurve):
-                start = (x, y)
+                start = (self.x, self.y)
                 if command.relative:
-                    end = (x + command.x * self.config.pixels_per_mm, y + command.y * self.config.pixels_per_mm)
+                    end = (self.x + command.x * self.config.pixels_per_mm, self.y + command.y * self.config.pixels_per_mm)
                 else:
                     end = (command.x * self.config.pixels_per_mm, command.y * self.config.pixels_per_mm)
 
@@ -211,24 +203,23 @@ class Path(Drawable):
 
                 self.draw_quadratic(start, (2 * start[0] - control[0], 2 * start[1] - control[1]), end)
 
-                self.set_start_point(x, y)
-
-                x = end[0]
-                y = end[1]
+                self.x = end[0]
+                self.y = end[1]
 
             elif isinstance(command, Arc):
                 if command.rx == 0 or command.ry == 0: continue
                 if command.rx < 0: command.rx = -command.rx
                 if command.ry < 0: command.ry = -command.ry
 
-                start = (x, y)
+                start = (self.x, self.y)
                 if command.relative:
-                    end = (x + command.x * self.config.pixels_per_mm, y + command.y * self.config.pixels_per_mm)
+                    end = (self.x + command.x * self.config.pixels_per_mm, self.y + command.y * self.config.pixels_per_mm)
                 else:
                     end = (command.x * self.config.pixels_per_mm, command.y * self.config.pixels_per_mm)
 
-                pi_times_2 = math.pi * 2
                 phi = radians(command.x_rotation)
+
+                print(start, end)
 
                 sin_phi = math.sin(phi)
                 cos_phi = math.cos(phi)
@@ -287,14 +278,34 @@ class Path(Drawable):
                 if not command.sweep:
                     start_angle, end_angle = end_angle, start_angle
 
-                if command.large_arc:
+                while end_angle < start_angle:
                     end_angle += 360
+
+                print(cx, cy, command.rx, command.ry, start_angle, end_angle)
 
                 self.draw_arc(cx, cy, command.rx, command.ry, start_angle, end_angle, command.x_rotation)
 
-                x = end[0]
-                y = end[1]
+                self.x = end[0]
+                self.y = end[1]
 
             elif isinstance(command, ClosePath):
-                image.line([(x, y), self.path_start_point], fill=self.outline, width=self.config.pixels_per_mm)
-                return
+                if len(self.current_polygon) <= 1:
+                    self.current_polygon = []
+                    continue
+
+                first_point = self.current_polygon[0]
+
+                self.add_points_to_polygon([first_point])
+                self.polygons.append(self.current_polygon)
+                self.current_polygon = []
+
+                self.x = first_point[0]
+                self.y = first_point[1]
+
+
+        if len(self.current_polygon) > 1:
+            self.polygons.append(self.current_polygon)
+
+        for polygon in self.polygons:
+            image.polygon(polygon, fill=None, width=0)
+            image.line(polygon, fill=self.outline, width=self.outline_width * self.config.pixels_per_mm)
