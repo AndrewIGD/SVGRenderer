@@ -16,18 +16,21 @@ class Rectangle(Drawable):
 
     def draw(self):
         ppm = self.config.pixels_per_mm
-        rect_x0, rect_y0 = self.x / ppm, self.y / ppm
-        rect_x1, rect_y1 = (self.x + self.width) / ppm, (self.y + self.height) / ppm
+        x, y = self.x / ppm, self.y / ppm
+        width, height = self.width / ppm, self.height / ppm
 
         rx = self.rx / ppm
         ry = self.ry / ppm
 
         path = Path([
-            MoveTo(rect_x0, rect_y0 + ry, False),
-            Arc(rect_x0 + rx, rect_y0, rx, ry, 0, True, False, False),
-            LineTo(rect_x1, rect_y0, False),
-            LineTo(rect_x1, rect_y1, False),
-            LineTo(rect_x0, rect_y1, False),
+            MoveTo(x, y + ry, False),
+            Arc(rx, -ry, rx, ry, 0, False, True, True),
+            LineTo(width - 2 * rx, 0, True),
+            Arc(rx, ry, rx, ry, 0, False, True, True),
+            LineTo(0, height - 2 * ry, True),
+            Arc(-rx, ry, rx, ry, 0, False, True, True),
+            LineTo(-width + 2 * rx, 0, True),
+            Arc(-rx, -ry, rx, ry, 0, False, True, True),
             ClosePath()
-        ], self.config, "#FFFFFF", "#000000", 1)
+        ], self.config, self.fill, self.outline, self.outline_width)
         path.draw()

@@ -1,3 +1,5 @@
+import math
+
 from drawer.drawer import Drawable
 
 
@@ -16,4 +18,4 @@ class Polyline(Drawable):
         if self.outline is None:
             return
 
-        image.line(self.points, fill=self.outline, width=self.outline_width * self.config.pixels_per_mm, joint='curve')
+        image.line(self.points, fill=self.outline, width=math.floor(self.outline_width * self.config.pixels_per_mm), joint='curve')

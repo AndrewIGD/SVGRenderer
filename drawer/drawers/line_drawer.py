@@ -1,3 +1,4 @@
+import math
 from math import floor
 
 from drawer.drawer import Drawable
@@ -14,4 +15,4 @@ class Line(Drawable):
     def draw(self):
         image = self.config.image
 
-        image.line([(self.x1, self.y1), (self.x2, self.y2)], fill=self.outline, width=self.outline_width * self.config.pixels_per_mm)
+        image.line([(self.x1, self.y1), (self.x2, self.y2)], fill=self.outline, width=math.floor(self.outline_width * self.config.pixels_per_mm))

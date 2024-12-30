@@ -60,7 +60,7 @@ class Path(Drawable):
 
         self.previous_quadratic_control = control
 
-    def draw_arc(self, cx, cy, rx, ry, start_angle, end_angle, angle):
+    def draw_arc(self, cx, cy, rx, ry, start_angle, end_angle, angle, sweep):
         def ellipse(t):
             ellipse_point = cx + rx * math.cos(t), cy + ry * math.sin(t)
 
@@ -71,21 +71,24 @@ class Path(Drawable):
 
             return x_new, y_new
 
-        def frange(start, stop, step):
+        def frange(start, stop, reverse):
             index = start
             nums = []
-            while index <= stop:
+            step = 1
+            if reverse:
+                step = -1
+
+            while (index <= stop) != reverse:
                 nums.append(index)
                 index += step
 
             nums.append(stop)
             return nums
 
-        bounding_box = [cx - 5, cy - 5, cx + 5, cy + 5]
+        points = [ellipse(t) for t in [math.radians(i) for i in frange(start_angle, end_angle, start_angle > end_angle)]]
 
-        self.config.image.ellipse(bounding_box, fill="#FF0000")
-
-        points = [ellipse(t) for t in [math.radians(i) for i in frange(start_angle, end_angle, 1)]]
+        if not sweep:
+            points.reverse()
 
         self.add_points_to_polygon(points)
 
@@ -207,9 +210,11 @@ class Path(Drawable):
                 self.y = end[1]
 
             elif isinstance(command, Arc):
-                if command.rx == 0 or command.ry == 0: continue
                 if command.rx < 0: command.rx = -command.rx
                 if command.ry < 0: command.ry = -command.ry
+
+                command.rx *= self.config.pixels_per_mm
+                command.ry *= self.config.pixels_per_mm
 
                 start = (self.x, self.y)
                 if command.relative:
@@ -217,9 +222,13 @@ class Path(Drawable):
                 else:
                     end = (command.x * self.config.pixels_per_mm, command.y * self.config.pixels_per_mm)
 
-                phi = radians(command.x_rotation)
+                if command.rx == 0 or command.ry == 0:
+                    self.add_points_to_polygon([end])
+                    self.x = end[0]
+                    self.y = end[1]
+                    continue
 
-                print(start, end)
+                phi = radians(command.x_rotation)
 
                 sin_phi = math.sin(phi)
                 cos_phi = math.cos(phi)
@@ -278,12 +287,10 @@ class Path(Drawable):
                 if not command.sweep:
                     start_angle, end_angle = end_angle, start_angle
 
-                while end_angle < start_angle:
+                if end_angle < start_angle:
                     end_angle += 360
 
-                print(cx, cy, command.rx, command.ry, start_angle, end_angle)
-
-                self.draw_arc(cx, cy, command.rx, command.ry, start_angle, end_angle, command.x_rotation)
+                self.draw_arc(cx, cy, command.rx, command.ry, start_angle, end_angle, command.x_rotation, command.sweep)
 
                 self.x = end[0]
                 self.y = end[1]
@@ -307,5 +314,5 @@ class Path(Drawable):
             self.polygons.append(self.current_polygon)
 
         for polygon in self.polygons:
-            image.polygon(polygon, fill=None, width=0)
-            image.line(polygon, fill=self.outline, width=self.outline_width * self.config.pixels_per_mm)
+            image.polygon(polygon, fill=self.fill, width=0)
+            image.line(polygon, fill=self.outline, width=math.floor(self.outline_width * self.config.pixels_per_mm))

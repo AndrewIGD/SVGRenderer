@@ -1,3 +1,4 @@
+import math
 from math import floor
 
 from drawer.drawer import Drawable
@@ -16,4 +17,4 @@ class Ellipse(Drawable):
 
         bounding_box = [self.cx - self.rx, self.cy - self.ry, self.cx + self.rx, self.cy + self.ry]
 
-        image.ellipse(bounding_box, fill=self.fill, outline=self.outline, width=self.outline_width * self.config.pixels_per_mm)
+        image.ellipse(bounding_box, fill=self.fill, outline=self.outline, width=math.floor(self.outline_width * self.config.pixels_per_mm))

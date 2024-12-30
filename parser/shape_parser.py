@@ -38,7 +38,7 @@ class ShapeParser(Parser):
                 elif key == "stroke":
                     self.outline = value
                 elif key == "stroke-width":
-                    self.outline_width = math.floor(float(value))
+                    self.outline_width = float(value)
 
         if self.fill is None or self.fill.lower() == "none":
             self.fill = None
