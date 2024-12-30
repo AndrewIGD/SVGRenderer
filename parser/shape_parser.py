@@ -45,3 +45,5 @@ class ShapeParser(Parser):
 
         if self.outline is None or self.outline.lower() == "none":
             self.outline = None
+
+        self.outline = "#000000"

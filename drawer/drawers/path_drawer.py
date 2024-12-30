@@ -2,6 +2,7 @@ import math
 from math import radians
 
 from drawer.drawer import Drawable
+from drawer.drawers.common.outline import outline
 from drawer.drawers.path_commands.arc import Arc
 from drawer.drawers.path_commands.close_path import ClosePath
 from drawer.drawers.path_commands.cubic_curve import CubicCurve
@@ -40,7 +41,7 @@ class Path(Drawable):
                 p3[1],
             )
 
-        point_count = 100 * self.config.pixels_per_mm
+        point_count = 50 * self.config.pixels_per_mm
         points = [cubic_bezier(start, control1, control2, end, t) for t in [i / point_count for i in range(point_count + 1)]]
 
         self.add_points_to_polygon(points)
@@ -53,7 +54,7 @@ class Path(Drawable):
             y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1]
             return x, y
 
-        point_count = 100 * self.config.pixels_per_mm
+        point_count = 50 * self.config.pixels_per_mm
         points = [quadratic_bezier(start, control, end, t) for t in [i / point_count for i in range(point_count + 1)]]
 
         self.add_points_to_polygon(points)
@@ -74,9 +75,9 @@ class Path(Drawable):
         def frange(start, stop, reverse):
             index = start
             nums = []
-            step = 1
+            step = 10
             if reverse:
-                step = -1
+                step = -10
 
             while (index <= stop) != reverse:
                 nums.append(index)
@@ -315,4 +316,4 @@ class Path(Drawable):
 
         for polygon in self.polygons:
             image.polygon(polygon, fill=self.fill, width=0)
-            image.line(polygon, fill=self.outline, width=math.floor(self.outline_width * self.config.pixels_per_mm))
+            outline(self.config, polygon, color=self.outline, width=math.floor(self.outline_width * self.config.pixels_per_mm))

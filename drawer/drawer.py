@@ -5,6 +5,7 @@ class SVGConfig:
     def __init__(self, pixels_per_mm):
         self.pixels_per_mm = pixels_per_mm
         self.image = None
+        self.linecap = "curve"
 
 class Drawable:
     def __init__(self, x, y, width, height, config, fill = None, outline = None, outline_width = None):

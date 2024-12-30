@@ -160,6 +160,13 @@ class PathParser(ShapeParser):
             d = element.get("d").replace(",", " ")
         else: return None
 
+        d_index = 0
+        while d_index < len(d) - 1:
+            if (d[d_index].isdigit() and d[d_index + 1].isalpha()) or (d[d_index].isalpha() and (d[d_index + 1].isdigit() or d[d_index + 1] == "-" or d[d_index + 1] == ".")):
+                d = d[:d_index + 1] + " " + d[d_index + 1:]
+
+            d_index += 1
+
         self.commands = []
         self.parameters = d.split(" ")
         self.index = 0

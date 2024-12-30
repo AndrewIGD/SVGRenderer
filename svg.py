@@ -11,9 +11,9 @@ def main():
     ##if not os.path.isfile(svg_path):
     ##    raise Exception("File not found")
 
-    pixels_per_mm = 10
+    pixels_per_mm = 100
 
-    svg_path = "temp/rect.svg"
+    svg_path = "temp/test/store.svg"
 
     svg = parse_svg(svg_path, SVGConfig(pixels_per_mm=pixels_per_mm))
 
