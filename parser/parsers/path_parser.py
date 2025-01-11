@@ -224,7 +224,7 @@ class PathParser(ShapeParser):
         if not compare_tag(element, "path"):
             return None
 
-        self.parse_shape_elements(element)
+        self.parse_shape_elements(element, default_outline="black")
 
         if "d" in element.keys():
             d = element.get("d").replace(",", " ")

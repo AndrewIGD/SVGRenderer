@@ -15,12 +15,13 @@ class ShapeParser(Parser):
         self.outline = "#000000"
         self.outline_width = 1
 
-    def parse_shape_elements(self, element: Element):
+    def parse_shape_elements(self, element: Element, default_outline = None):
         """
         Parses common attributes applicable to most SVG elements (i.e. fill, stroke, stroke-width, style)
 
         Args:
             element (Element): XML node
+            default_outline (str): Default outline hex color
         """
 
         if "fill" in element.keys():
@@ -55,4 +56,4 @@ class ShapeParser(Parser):
             self.fill = None
 
         if self.outline is None or self.outline.lower() == "none" or self.outline.lower() == "transparent":
-            self.outline = None
+            self.outline = default_outline
