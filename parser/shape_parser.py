@@ -51,10 +51,8 @@ class ShapeParser(Parser):
                 elif key == "stroke-width":
                     self.outline_width = float(value)
 
-        if self.fill is None or self.fill.lower() == "none":
+        if self.fill is None or self.fill.lower() == "none" or self.fill.lower() == "transparent":
             self.fill = None
 
-        if self.outline is None or self.outline.lower() == "none":
+        if self.outline is None or self.outline.lower() == "none" or self.outline.lower() == "transparent":
             self.outline = None
-
-        self.outline = "#000000"
