@@ -6,12 +6,23 @@ from parser.parsers.parser_base import Parser
 
 class ShapeParser(Parser):
     def __init__(self):
+        """
+           Initializes common shape default styling.
+        """
+
         super().__init__()
         self.fill = "#000000"
         self.outline = "#000000"
         self.outline_width = 1
 
     def parse_shape_elements(self, element: Element):
+        """
+        Parses common attributes applicable to most SVG elements (i.e. fill, stroke, stroke-width, style)
+
+        Args:
+            element (Element): XML node
+        """
+
         if "fill" in element.keys():
             self.fill = element.get("fill")
 

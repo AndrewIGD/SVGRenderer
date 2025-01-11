@@ -1,12 +1,34 @@
 import math
 
 def points_to_vector_eq(a, b):
+    """
+    Converts points to a vector equation.
+
+    Args:
+        a (tuple): first point
+        b (tuple): second point
+
+    Returns:
+        tuple: first element is the reference point, second element is the delta
+    """
+
     x1, y1 = a
     x2, y2 = b
 
     return a, (x2 - x1, y2 - y1)
 
 def line_intersection(l1, l2):
+    """
+    Calculates the point of intersection between two lines.
+
+    Args:
+        l1 (tuple): first line, given as vector equation
+        l2 (tuple): second line, given as vector equation
+
+    Returns:
+        tuple: the point of intersection of the two lines.
+    """
+
     a, b = l1
     c, d = l2
 
@@ -34,6 +56,18 @@ def line_intersection(l1, l2):
     return v1[0][0] + t * v1[1][0], v1[0][1] + t * v1[1][1]
 
 def offset(a, b, offset):
+    """
+    Offsets 2 points by a given offset from their line.
+
+    Args:
+        a (tuple): first point
+        b (tuple): second point
+        offset (tuple): the offset from which to offset the points.
+
+    Returns:
+        tuple: the two offset points
+    """
+
     v = points_to_vector_eq(a, b)
     perpendicular_vector = -v[1][1], v[1][0]
 
@@ -45,6 +79,16 @@ def offset(a, b, offset):
 
 
 def outline(config, points, color, width):
+    """
+    Draws an outline to a given shape. Supports miter cap drawing, specifiable in the config.
+
+    Args:
+        config (SVGConfig): outline drawing configuration
+        points (list): the shape of which the outline is drawn
+        color (str): hex color of the outline
+        width (int): width of the outline
+    """
+
     config.image.line(points, fill=color, width=width, joint=config.linecap)
 
     if config.linecap != "miter":

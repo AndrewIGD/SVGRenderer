@@ -9,6 +9,18 @@ from parser.utils import compare_tag
 
 class LineParser(ShapeParser):
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+          Tries to parse an XML element into a line element.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+
+          Returns:
+              SVG: The Line element, containing 2 points along with the stroke styling
+              None: otherwise
+           """
+
         if not compare_tag(element, "line"):
             return None
 

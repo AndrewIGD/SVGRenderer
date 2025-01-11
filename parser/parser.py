@@ -17,6 +17,18 @@ element_parsers = [
     ]
 
 def try_parse(element: ET.Element, config: SVGConfig):
+    """
+    Tries parsing an XML element into an SVG element from a list of pre-defined parsers shape parsers.
+
+    Args:
+        element (ET.Element): XML node
+        config (SVGConfig): Parsing settings
+
+    Returns:
+        Drawable: valid SVG element
+        None: otherwise
+    """
+
     for parser in element_parsers:
         drawable = parser.try_parse(element, config)
         if drawable is not None:
@@ -25,6 +37,20 @@ def try_parse(element: ET.Element, config: SVGConfig):
     return None
 
 def parse_svg(contents: string, svg_config: SVGConfig):
+    """
+    Parses svg contents to a valid SVG tree.
+
+    Args:
+        contents (str): SVG file contents
+        svg_config (SVGConfig): Parsing settings
+
+    Returns:
+        SVG: The root node of the SVG tree
+
+    Raises:
+        Exception: If parsing fails
+    """
+
     set_parsing_function(try_parse)
 
     tree = ET.parse(contents)

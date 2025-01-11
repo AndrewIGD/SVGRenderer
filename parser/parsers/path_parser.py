@@ -19,6 +19,10 @@ from parser.utils import compare_tag
 
 class PathParser(ShapeParser):
     def __init__(self):
+        """
+           Initializes common path styling and command parsing variables
+        """
+
         super().__init__()
         self.parameters = []
         self.index = 0
@@ -26,9 +30,21 @@ class PathParser(ShapeParser):
         self.relative = False
 
     def tokens_available(self):
+        """
+           Returns:
+               Bool: if a token is available to read
+        """
+
         return self.index < len(self.parameters)
 
     def next_token(self):
+        """
+           Returns:
+               float: if a token is available and the token is a number
+               string: if a token is available and the token is not a number
+               None: otherwise
+        """
+
         while self.tokens_available() and len(self.parameters[self.index]) == 0:
             self.index += 1
 
@@ -44,10 +60,17 @@ class PathParser(ShapeParser):
         return item
 
     def parse_numbers(self):
+        """
+           Reads the following 2 tokens as the end position for a line, then inserts a line draw command.
+        """
         self.index -= 1
         self.parse_line_to(self.relative)
 
     def parse_move_to(self, relative):
+        """
+           Reads following 2 tokens as the end position for a move to command, then inserts a move to command.
+        """
+
         x = self.next_token()
         y = self.next_token()
 
@@ -58,6 +81,10 @@ class PathParser(ShapeParser):
         self.commands.append(MoveTo(x, y, relative))
 
     def parse_line_to(self, relative):
+        """
+           Reads following 2 tokens as the end position for a line, then inserts a line draw command.
+        """
+
         x = self.next_token()
         y = self.next_token()
 
@@ -67,6 +94,10 @@ class PathParser(ShapeParser):
         self.commands.append(LineTo(x, y, relative))
 
     def parse_h_line(self, relative):
+        """
+           Reads following token as the x delta for a horizontal line, then inserts a horizontal line draw command.
+        """
+
         x = self.next_token()
 
         if not isinstance(x, float):
@@ -75,6 +106,10 @@ class PathParser(ShapeParser):
         self.commands.append(HorizontalLine(x, relative))
 
     def parse_v_line(self, relative):
+        """
+           Reads following token as the y delta for a vertical line, then inserts a vertical line draw command.
+        """
+
         y = self.next_token()
 
         if not isinstance(y, float):
@@ -83,6 +118,10 @@ class PathParser(ShapeParser):
         self.commands.append(VerticalLine(y, relative))
 
     def parse_cubic_curve(self, relative):
+        """
+           Reads following 6 tokens as a cubic arc's end position and it's 2 control points, then inserts a cubic curve draw command.
+        """
+
         x1 = self.next_token()
         y1 = self.next_token()
         x2 = self.next_token()
@@ -98,6 +137,10 @@ class PathParser(ShapeParser):
         self.commands.append(CubicCurve(x1, y1, x2, y2, x, y, relative))
 
     def parse_smooth_cubic(self, relative):
+        """
+           Reads following 4 tokens as a smooth cubic arc's end position and it's second control point, then inserts a smooth cubic curve draw command.
+        """
+
         x2 = self.next_token()
         y2 = self.next_token()
         x = self.next_token()
@@ -110,6 +153,10 @@ class PathParser(ShapeParser):
         self.commands.append(SmoothCubicCurve(x2, y2, x, y, relative))
 
     def parse_quadratic_curve(self, relative):
+        """
+           Reads following 4 tokens as a quadratic curve's end position and control point, then inserts a quadratic curve draw command.
+        """
+
         x1 = self.next_token()
         y1 = self.next_token()
         x = self.next_token()
@@ -122,6 +169,10 @@ class PathParser(ShapeParser):
         self.commands.append(QuadraticCurve(x1, y1, x, y, relative))
 
     def parse_smooth_quadratic(self, relative):
+        """
+           Reads following 2 tokens as a smooth quadratic curve's end position and inserts a smooth quadratic curve draw command.
+        """
+
         x = self.next_token()
         y = self.next_token()
 
@@ -131,6 +182,10 @@ class PathParser(ShapeParser):
         self.commands.append(SmoothQuadraticCurve(x, y, relative))
 
     def parse_arc(self, relative):
+        """
+           Reads following 7 tokens as an arc's radii, rotation, large arc and sweep flags and it's end position. Then, it inserts an arc draw command.
+        """
+
         rx = self.next_token()
         ry = self.next_token()
         x_rotation = self.next_token()
@@ -148,9 +203,24 @@ class PathParser(ShapeParser):
         self.commands.append(Arc(x, y, rx, ry, x_rotation, large_arc, sweep, relative))
 
     def parse_close_path(self):
+        """
+          Inserts a close path command.
+        """
         self.commands.append(ClosePath())
 
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+          Tries to parse an XML element into a path element.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+
+          Returns:
+              SVG: The Path element, containing the commands required to draw a shape
+              None: otherwise
+           """
+
         if not compare_tag(element, "path"):
             return None
 

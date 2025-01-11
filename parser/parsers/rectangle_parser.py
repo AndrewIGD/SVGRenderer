@@ -9,6 +9,18 @@ from parser.utils import compare_tag
 
 class RectParser(ShapeParser):
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+          Tries to parse an XML element into a rectangle element.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+
+          Returns:
+              SVG: a Rectangle element, containing its position, dimensions, corner radii and styling
+              None: otherwise
+           """
+
         if not compare_tag(element, "rect"):
             return None
 

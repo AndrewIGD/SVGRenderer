@@ -8,6 +8,18 @@ from parser.utils import compare_tag
 
 class EllipseParser(ShapeParser):
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+          Tries to parse an XML element into an ellipse element. Circles are considered ellipses with equal rx and ry values.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+
+          Returns:
+              SVG: The Ellipse element, containing the center position, radii and styling
+              None: otherwise
+           """
+
         if not compare_tag(element, "circle") and not compare_tag(element, "ellipse"):
             return None
 

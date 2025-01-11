@@ -9,6 +9,18 @@ from parser.utils import compare_tag
 
 class PolylineParser(ShapeParser):
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+          Tries to parse an XML element into a polyline element.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+
+          Returns:
+              SVG: The Polyline element, containing the points that define the polyline, along with styling
+              None: otherwise
+           """
+
         if not compare_tag(element, "polyline"):
             return None
 

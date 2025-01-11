@@ -10,11 +10,31 @@ from drawer.drawers.path_drawer import Path
 
 class Rectangle(Drawable):
     def __init__(self, x, y, width, height, rx, ry, config, fill, outline, outline_width):
+        """
+           Initializes a rectangle drawer.
+
+           Args:
+               x (float): the x position of the rectangle
+               y (float): the y position of the rectangle
+               width (float): the width of the rectangle
+               height (float): the height of the rectangle
+               rx (float): the x radius of the rectangle
+               ry (float): the y radius of the rectangle
+               config (Config): the drawing configuration of the rectangle
+               fill (string): the fill hex color of the rectangle
+               outline (string): the outline hex color of the rectangle
+               outline_width (float): the outline width of the rectangle
+        """
+
         super().__init__(x, y, width, height, config, fill, outline, outline_width)
         self.rx = floor(rx * config.pixels_per_mm)
         self.ry = floor(ry * config.pixels_per_mm)
 
     def draw(self):
+        """
+        Draws the rectangle on the canvas given by the configuration.
+        """
+
         ppm = self.config.pixels_per_mm
         x, y = self.x / ppm, self.y / ppm
         width, height = self.width / ppm, self.height / ppm

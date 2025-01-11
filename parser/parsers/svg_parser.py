@@ -8,6 +8,18 @@ from parser.utils import compare_tag
 
 class SVGParser(GroupParser):
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+        Tries to parse an XML element into an SVG element.
+
+        Args:
+            element (Element): XML node
+            config (SVGConfig): Parsing settings
+
+        Returns:
+            SVG: The SVG root element, containing a viewBox and it's children
+            None: otherwise
+         """
+
         if not compare_tag(element, "svg"):
             return None
 

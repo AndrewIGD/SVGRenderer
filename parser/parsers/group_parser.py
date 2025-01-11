@@ -13,6 +13,18 @@ class GroupParser(Parser):
         self.group = None
 
     def try_parse(self, element: Element, config: SVGConfig):
+        """
+          Tries to parse an XML element into a Group element.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+
+          Returns:
+              SVG: The Group element, containing its children
+              None: otherwise
+           """
+
         if not compare_tag(element, "g"):
             return None
 
@@ -22,6 +34,14 @@ class GroupParser(Parser):
         return self.group
 
     def parse_children(self, element: Element, config: SVGConfig):
+        """
+          Parses all the children of an XML node into valid SVG elements and stores them in the group.
+
+          Args:
+              element (Element): XML node
+              config (SVGConfig): Parsing settings
+           """
+
         iterator = element.iter()
         for child in iterator:
             if child is element:

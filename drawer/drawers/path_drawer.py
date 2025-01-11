@@ -17,6 +17,16 @@ from drawer.drawers.path_commands.vertical_line import VerticalLine
 
 class Path(Drawable):
     def __init__(self, commands, config, fill, outline, outline_width):
+        """
+           Initializes a path drawer.
+
+           Args:
+               commands (list): the list of commands that define a shape
+               config (Config): the drawing configuration of the shape
+               fill (string): the fill hex color of the shape
+               outline (string): the outline hex color of the shape
+               outline_width (float): the outline width of the shape
+        """
         super().__init__(0, 0, 0, 0, config, fill, outline, outline_width)
         self.commands = commands
         self.previous_cubic_control = None
@@ -27,13 +37,44 @@ class Path(Drawable):
         self.y = 0
 
     def add_points_to_polygon(self, points):
+        """
+           Appends a list of points to the current polygon.
+
+           Args:
+               points (list): the list of points
+        """
+
         if len(self.current_polygon) == 0:
             self.current_polygon.append((self.x, self.y))
 
         self.current_polygon.extend(points)
 
     def draw_cubic(self, start, control1, control2, end):
+        """"
+           Draws a cubic bezier curve.
+
+           Args:
+               start(tuple): the start position
+               control1(tuple): the first control position
+               control2(tuple): the second control position
+               end(tuple): the end position
+        """
+
         def cubic_bezier(p0, p1, p2, p3, t):
+            """"
+               Cubic bezier function.
+
+               Args:
+                   p0 (tuple): the start position
+                   p1 (tuple): the first control position
+                   p2 (tuple): the second control position
+                   p3 (tuple): the end position
+                   t (float): function parameter. Ranges from 0 to 1
+
+                Returns:
+                    tuple: point on the cubic bezier curve
+            """
+
             return (
                 (1 - t) ** 3 * p0[0] + 3 * (1 - t) ** 2 * t * p1[0] + 3 * (1 - t) * t ** 2 * p2[0] + t ** 3 *
                 p3[0],
@@ -49,7 +90,29 @@ class Path(Drawable):
         self.previous_cubic_control = control2
 
     def draw_quadratic(self, start, control, end):
+        """"
+           Draws a quadratic bezier curve.
+
+           Args:
+               start(tuple): the start position
+               control(tuple): the control position
+               end(tuple): the end position
+        """
+
         def quadratic_bezier(p0, p1, p2, t):
+            """"
+                Quadratic bezier function.
+
+                Args:
+                    p0 (tuple): the start position
+                    p1 (tuple): the control position
+                    p2 (tuple): the end position
+                    t (float): function parameter. Ranges from 0 to 1
+
+                Returns:
+                    tuple: point on the quadratic bezier curve
+            """
+
             x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t ** 2 * p2[0]
             y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1]
             return x, y
@@ -62,7 +125,31 @@ class Path(Drawable):
         self.previous_quadratic_control = control
 
     def draw_arc(self, cx, cy, rx, ry, start_angle, end_angle, angle, sweep):
+        """"
+           Draws an elliptical arc.
+
+           Args:
+               cx (float): the center x coordinate
+               cy (float): the center y coordinate
+               rx (float): the x radius of the arc
+               ry (float): the x radius of the arc
+               start_angle (float): the start angle of the arc
+               end_angle (float): the end angle of the arc
+               angle (float): the rotation of the arc
+               sweep (float): the sweep flag of the arc
+        """
+
         def ellipse(t):
+            """"
+                Ellipse function.
+
+                Args:
+                    t (float): function parameter. Ranges from 0 to 1
+
+                Returns:
+                    tuple: point on the ellipse
+            """
+
             ellipse_point = cx + rx * math.cos(t), cy + ry * math.sin(t)
 
             angle_radians = math.radians(angle)
@@ -94,6 +181,10 @@ class Path(Drawable):
         self.add_points_to_polygon(points)
 
     def draw(self):
+        """
+        Draws the path on the canvas given by the configuration.
+        """
+
         image = self.config.image
 
         for command in self.commands:
